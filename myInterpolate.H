@@ -1,3 +1,5 @@
+#include "slopeLimiter.H"
+
 template <class Type>
 const GeometricField<typename outerProduct<vector, Type>::type, fvPatchField, volMesh>
 myGaussGrad
@@ -35,84 +37,19 @@ myGaussGrad
     const Field<vector>& cfi = mesh.Cf().internalField();
     const Field<vector>& ci = mesh.C().internalField();
 
-//    Field<Type> vInterp( sfi.size());
-//    Field<scalar> wout( sfi.size());
     forAll(owner, facei)
     {
         scalar SfdOwn = mag(sfi[facei] & (cfi[facei] - ci[owner[facei]]));
         scalar SfdNei = mag(sfi[facei] & (ci[neighbour[facei]] - cfi[facei]));
         scalar w = SfdNei/(SfdOwn + SfdNei);
 
-//        wout[facei] = SfdNei/(SfdOwn + SfdNei);
-	
-//	Type vInterp = .5*(vfi[owner[facei]] + vfi[neighbour[facei]]);
-//	Type vInterp = (1-w)*vfi[owner[facei]] + w*vfi[neighbour[facei]];
-//	typename outerProduct<vector, Type>::type sfiVInterp = sfi[facei]*vInterp;
-//	vInterp[facei] = (1-w)*vfi[owner[facei]] + w*vfi[neighbour[facei]];
-//	vInterp[facei] = w*vfi[owner[facei]] + (1-w)*vfi[neighbour[facei]];
 	Type vInterp = w*vfi[owner[facei]] + (1-w)*vfi[neighbour[facei]];
 	typename outerProduct<vector, Type>::type sfiVInterp = sfi[facei]*vInterp;
 	sfSumi[owner[facei]] += sfiVInterp;
 	sfSumi[neighbour[facei]] -= sfiVInterp;
 
-/*	vector d = cfi[300] - ci[149];
-	scalar v = mesh.V()[149];
-	if (facei == 300) {
-	    Info << 300 << endl;
-	    Info << owner[facei] << endl;
-	    Info << neighbour[facei] << endl;
-	    Info << sfi[facei] << endl;
-	    Info << w*vfi[owner[facei]] << endl;
-	    Info << (1-w)*vfi[neighbour[facei]] << endl; 
-	    Info << w*vfi[owner[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << (1-w)*vfi[neighbour[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << w << endl;
-	    Info << (1-w) << endl;
-	    cin.get();
-	}
-	if (facei == 224) {
-	    Info << 224 << endl;
-	    Info << owner[facei] << endl;
-	    Info << neighbour[facei] << endl;
-	    Info << sfi[facei] << endl;
-	    Info << w*vfi[owner[facei]] << endl;
-	    Info << (1-w)*vfi[neighbour[facei]] << endl; 
-	    Info << w*vfi[owner[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << (1-w)*vfi[neighbour[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << w << endl;
-	    Info << (1-w) << endl;
-	    cin.get();
-	}
-	if (facei == 297) {
-	    Info << 297 << endl;
-	    Info << owner[facei] << endl;
-	    Info << neighbour[facei] << endl;
-	    Info << sfi[facei] << endl;
-	    Info << w*vfi[owner[facei]] << endl;
-	    Info << (1-w)*vfi[neighbour[facei]] << endl; 
-	    Info << w*vfi[owner[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << (1-w)*vfi[neighbour[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << w << endl;
-	    Info << (1-w) << endl;
-	    cin.get();
-	}
-	if (facei == 299) {
-	    Info << 299 << endl;
-	    Info << owner[facei] << endl;
-	    Info << neighbour[facei] << endl;
-	    Info << sfi[facei] << endl;
-	    Info << w*vfi[owner[facei]] << endl;
-	    Info << (1-w)*vfi[neighbour[facei]] << endl; 
-	    Info << w*vfi[owner[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << (1-w)*vfi[neighbour[facei]]*(sfi[facei]&d)/v << endl;
-	    Info << w << endl;
-	    Info << (1-w) << endl;
-	    cin.get();
-	}*/
     }
-   // Info << vInterp << endl;
-   // Info << vf.boundaryField() << endl;
-   // cin.get();
+    
     forAll(mesh.boundary(), patchi)
     {
 	const labelUList& pFaceCells =
@@ -134,56 +71,6 @@ myGaussGrad
 
     return sfSum;
 }
-
-/*volVectorField
-surfaceTest(const fvMesh& mesh)
-{
-    GeometricField<vector, fvPatchField, volMesh> sfSum
-    (
-	IOobject
-	(
-	    "mySurfaceSum",
-	    mesh.Sf().instance(),
-	    mesh,
-	    IOobject::NO_READ,
-	    IOobject::NO_WRITE
-	),
-	mesh,
-	dimensioned<vector>
-	(
-	    "my0",
-	    dimArea,
-	    pTraits<vector>::zero
-	),
-	zeroGradientFvPatchField<vector>::typeName
-    );
-    const labelUList& owner = mesh.owner();
-    const labelUList& neighbour = mesh.neighbour();
-    const vectorField& sfi = mesh.Sf().internalField();
-
-    forAll(owner, facei)
-    {
-	sfSum[owner[facei]] += sfi[facei];
-	sfSum[neighbour[facei]] -= sfi[facei];
-    }
-
-    forAll(mesh.boundary(), patchi)
-    {
-	const labelUList& pFaceCells =
-	mesh.boundary()[patchi].faceCells();
-
-	const fvsPatchField<vector>& psf = mesh.Sf().boundaryField()[patchi];
-
-	forAll(mesh.boundary()[patchi], facei)
-	{
-	    sfSum[pFaceCells[facei]] += psf[facei];
-	}
-    }
-
-    sfSum.correctBoundaryConditions();
-
-    return sfSum;
-}*/
 
 scalar
 eleWiseProd
@@ -524,13 +411,15 @@ myInterpolatePos
 //    const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad = fvc::grad(vf, "Gauss linear");
     const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad(myGaussGrad(vf));
     const Field<typename outerProduct<vector, Type>::type> &fgradi = fgrad.internalField();
-    const Field<Type> limiter = myLimiter(fgradi, vf);
+//    szhaoFoam::slopeLimiter<Type> limiter(Field<Type>(3, Foam::zero()));
+    szhaoFoam::slopeLimiter<Type> limiter(3, Foam::one());
+    Info << limiter << endl;
+    cin.get();
     for (register label fi=0; fi<P.size(); fi++)
     {
 	vector drt = faceCenter[fi] - cellCenter[P[fi]];
         sfi[fi] = vfi[P[fi]] + (drt&fgradi[P[fi]]);
 //        sfi[fi] = vfi[P[fi]];
-
     }
 
     // Interpolate across coupled patches using given lambdas
