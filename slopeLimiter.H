@@ -44,22 +44,18 @@ SourceFiles
 namespace szhaoFoam
 {
 
-//template <class Type>
+//template<class Type>
 //class slopeLimiter;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template <class Type>
+template<class Type>
 class slopeLimiter
 :
     public Field<Type>
 {
 
 public:
-    slopeLimiter(const Field<Type>& field)
-    :
-	Field<Type>(field)
-    {
-    };
+    slopeLimiter(const Field<Type>& field);
 
     slopeLimiter(const label size, const one)
     :

@@ -54,6 +54,8 @@ scalar Cp = readScalar(dict.subDict("mixture").subDict("thermodynamics").lookup(
 scalar molWeight = readScalar(dict.subDict("mixture").subDict("specie").lookup("molWeight"));
 scalar Rspec = constant::physicoChemical::R.value()*1000/molWeight; //(J/(kg*K))
 scalar gamma = Cp/(Cp - Rspec);
+
+//this should be farfield or freestream quantities
 forAll(mesh.boundary(), patchi) {
     if (mesh.boundary()[patchi].name() == "inlet") {
 	U_freestream_dim = mag(U_dim.boundaryField()[patchi][0]);
