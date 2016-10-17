@@ -81,7 +81,7 @@ volVectorField rhoU
 	runTime.timeName(),
 	mesh,
 	IOobject::NO_READ,
-	IOobject::NO_WRITE
+	IOobject::AUTO_WRITE
     ),
     rho*U
 );
@@ -94,7 +94,7 @@ volScalarField rhoE
 	runTime.timeName(),
 	mesh,
 	IOobject::NO_READ,
-	IOobject::NO_WRITE
+	IOobject::AUTO_WRITE
     ),
     rho*(e + 0.5*magSqr(U))
 );

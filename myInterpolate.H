@@ -420,15 +420,14 @@ myInterpolatePos
     cin.get();*/
 //    szhaoFoam::slopeLimiter<Type> limiter(P.size(), Foam::one());
     szhaoFoam::vkSlopeLimiter<Type> limiter(vf, fgrad, 20);
-    Info << limiter << endl;
+/*    Info << limiter << endl;
     Info << vf.name() << endl;
-    cin.get();
+    cin.get();*/
     for (register label fi=0; fi<P.size(); fi++)
     {
 	vector drt = faceCenter[fi] - cellCenter[P[fi]];
 //        sfi[fi] = vfi[P[fi]] + (drt&fgradi[P[fi]]); //2nd order reconstruction w/o limiter
         sfi[fi] = vfi[P[fi]] + eleWiseProd(limiter[P[fi]], drt&fgradi[P[fi]]); //2nd order reconstruction w limiter
-//        sfi[fi] = vfi[P[fi]] + (drt&fgradi[P[fi]]); //2nd order reconstruction w/o limiter
 //        sfi[fi] = vfi[P[fi]]; //1st order approx
     }
 

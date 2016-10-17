@@ -284,22 +284,22 @@ void szhaoFoam::vkSlopeLimiter<Type>::setDelta
 
     forAll(P, fi) {
 	vector drt = faceCenter[fi] - cellCenter[P[fi]];
-//	delta2P_[fi] = drt&Ugrad.internalField()[P[fi]];
-	tensor grad = Ugrad.internalField()[P[fi]];
+	delta2P_[fi] = drt&Ugrad.internalField()[P[fi]];
+/*	tensor grad = Ugrad.internalField()[P[fi]];
     
 	delta2P_[fi].x() = drt.x()*grad.xx() + drt.y()*grad.yx();
 	delta2P_[fi].y() = drt.x()*grad.xy() + drt.y()*grad.yy();
-	delta2P_[fi].z() = 0.0;
+	delta2P_[fi].z() = 0.0;*/
     }
     
     forAll(N, fi) {
 	vector drt = faceCenter[fi] - cellCenter[N[fi]];
-//	delta2N_[fi] = drt&Ugrad.internalField()[N[fi]];
-	tensor grad = Ugrad.internalField()[N[fi]];
+	delta2N_[fi] = drt&Ugrad.internalField()[N[fi]];
+/*	tensor grad = Ugrad.internalField()[N[fi]];
     
 	delta2N_[fi].x() = drt.x()*grad.xx() + drt.y()*grad.yx();
 	delta2N_[fi].y() = drt.x()*grad.xy() + drt.y()*grad.yy();
-	delta2N_[fi].z() = 0.0;
+	delta2N_[fi].z() = 0.0;*/
     }
 };
 
@@ -324,16 +324,16 @@ void szhaoFoam::vkSlopeLimiter<double>::setDelta
 
     forAll(P, fi) {
 	vector drt = faceCenter[fi] - cellCenter[P[fi]];
-//	delta2P_[fi] = drt&Ugrad.internalField()[P[fi]];
-	vector grad = Ugrad.internalField()[P[fi]];
-	delta2P_[fi] = drt.x()*grad.x() + drt.y()*grad.y();
+	delta2P_[fi] = drt&Ugrad.internalField()[P[fi]];
+//	vector grad = Ugrad.internalField()[P[fi]];
+//	delta2P_[fi] = drt.x()*grad.x() + drt.y()*grad.y();
     }
     
     forAll(N, fi) {
 	vector drt = faceCenter[fi] - cellCenter[N[fi]];
-//	delta2N_[fi] = drt&Ugrad.internalField()[N[fi]];
-	vector grad = Ugrad.internalField()[N[fi]];
-	delta2N_[fi] = drt.x()*grad.x() + drt.y()*grad.y();
+	delta2N_[fi] = drt&Ugrad.internalField()[N[fi]];
+//	vector grad = Ugrad.internalField()[N[fi]];
+//	delta2N_[fi] = drt.x()*grad.x() + drt.y()*grad.y();
     }
 };
 
@@ -401,13 +401,15 @@ void szhaoFoam::vkSlopeLimiter<Type>::setValue
 
 	    vector drt = (pFaceCenter[facei]-pCellCenter[pFaceCells[facei]]);
 	    tensor grad = (Ugrad.internalField()[pFaceCells[facei]]);
-	
+/*	
 	    vector delta2B
 	    (
 		drt.x()*grad.xx() + drt.y()*grad.yx(),
 		drt.x()*grad.xy() + drt.y()*grad.yy(),
 		0.0
 	    );
+*/
+	    vector delta2B = drt & grad;
 
 	    for(direction cmpt=0; cmpt<Type::nComponents; cmpt++) {
 		double psi = 
@@ -473,7 +475,8 @@ void szhaoFoam::vkSlopeLimiter<double>::setValue
 	    //when doing inner product operation "&", the third dimenstion is participating in it. However, for a 2D case, this make induce error, in that the mesh is not perfectly 3D. Sf = (x,y, epsilon)
 	    vector drt = (pFaceCenter[facei])-(pCellCenter[pFaceCells[facei]]);
 	    vector grad = (Ugrad.internalField()[pFaceCells[facei]]);
-	    double delta2B = drt.x()*grad.x() + drt.y()*grad.y();
+//	    double delta2B = drt.x()*grad.x() + drt.y()*grad.y();
+	    double delta2B = drt & grad;
 
 	    double psi = 
 		func
@@ -483,6 +486,10 @@ void szhaoFoam::vkSlopeLimiter<double>::setValue
 		    delta2B,
 		    pow(K_*vol[pFaceCells[facei]],3)
 		);
+
+	    if (psi<f[pFaceCells[facei]]) {
+		f[pFaceCells[facei]] = psi;
+	    }
 	}
     }
 /*	    typename vector::labelType validComponents
