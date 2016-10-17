@@ -76,9 +76,6 @@ int main(int argc, char *argv[])
 
     while ( runTime.run() || (ifLinear == "Yes"))
     {
-	#include "setDt.H"
-        runTime++;
-	
 	//p boundary condition
         e = rhoE/rho - 0.5*magSqr(U);
         p = rho*e*(thermo.gamma()-1);
@@ -236,8 +233,8 @@ int main(int argc, char *argv[])
 	     U
 	);
 
-//	#include "setDt.H"
-//        runTime++;
+	#include "setDt.H"
+        runTime++;
 	Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
         Info<< "Time = " << runTime.timeName() << nl << endl;
 	
@@ -278,23 +275,13 @@ int main(int argc, char *argv[])
 	}
 
 	// --- Solve density          
-/*        solve(fvm::ddt(rho) + fvc::div(phi));
+        solve(fvm::ddt(rho) + fvc::div(phi));
 
     // --- Solve momentum
         solve(fvm::ddt(rhoU) + fvc::div(phiUp));
       
       // --- Solve energy
-	solve(fvm::ddt(rhoE) + fvc::div(phiEp));*/
-
-
-	scalar dT = runTime.deltaTValue();
-	rho.internalField() = rho.internalField() - dT*fvc::div(phi)().internalField();
-	rhoU.internalField() = rhoU.internalField() - dT*fvc::div(phiUp)().internalField();
-	for(unsigned int ni = 0; ni < rho.internalField().size(); ni++) {
-	    rhoU.internalField()[ni].z() = 0;
-	}
-	rhoE.internalField() = rhoE.internalField() - dT*fvc::div(phiEp)().internalField();
-
+	solve(fvm::ddt(rhoE) + fvc::div(phiEp));
 
 	//p boundary condition
         e = rhoE/rho - 0.5*magSqr(U);
