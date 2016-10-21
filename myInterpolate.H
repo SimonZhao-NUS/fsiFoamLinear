@@ -427,8 +427,8 @@ myInterpolatePos
     {
 	vector drt = faceCenter[fi] - cellCenter[P[fi]];
 //        sfi[fi] = vfi[P[fi]] + (drt&fgradi[P[fi]]); //2nd order reconstruction w/o limiter
-        sfi[fi] = vfi[P[fi]] + eleWiseProd(limiter[P[fi]], drt&fgradi[P[fi]]); //2nd order reconstruction w limiter
-//        sfi[fi] = vfi[P[fi]]; //1st order approx
+//        sfi[fi] = vfi[P[fi]] + eleWiseProd(limiter[P[fi]], drt&fgradi[P[fi]]); //2nd order reconstruction w limiter
+        sfi[fi] = vfi[P[fi]]; //1st order approx
     }
 
     forAll(vf.boundaryField(), pi)
@@ -479,8 +479,8 @@ myInterpolateNeg
     {
 	vector drt = faceCenter[fi] - cellCenter[N[fi]];
 //        sfi[fi] = vfi[N[fi]] + (drt&fgradi[N[fi]]);
-        sfi[fi] = vfi[N[fi]] + eleWiseProd(limiter[N[fi]], drt&fgradi[N[fi]]); //2nd order reconstruction w limiter
-//        sfi[fi] = vfi[N[fi]];
+//        sfi[fi] = vfi[N[fi]] + eleWiseProd(limiter[N[fi]], drt&fgradi[N[fi]]); //2nd order reconstruction w limiter
+        sfi[fi] = vfi[N[fi]];
     }
 
     forAll(vf.boundaryField(), pi)
