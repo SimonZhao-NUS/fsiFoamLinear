@@ -25,11 +25,6 @@ volScalarField& T = thermo.T();
 const volScalarField& psi = thermo.psi();
 const volScalarField& mu = thermo.mu();
 
-/*forAll(mesh.boundary(), patchi) {
-    Info<< mesh.boundary()[patchi].name() <<endl;
-    cin.get();
-}*/
-
 bool inviscid(true);
 if (max(mu.internalField()) > 0.0)
 {
@@ -49,14 +44,6 @@ volVectorField U
     ),
     mesh
 );
-/*double Uc = 0.0153578;
-forAll(U.internalField(), Ui) {
-    U.internalField()[Ui].y() += Uc;
-}
-
-forAll(U.boundaryField()[2], Ub) {
-    U.boundaryField()[2][Ub].y() += Uc;
-}*/
 
 //#include "rhoBoundaryTypes.H"
 volScalarField rho
