@@ -29,12 +29,9 @@ void getMatTSp
     SpMat& matT2_neg,
     SpMat& matT3_pos,
     SpMat& matT3_neg,
-    Field<scalar> limiterRho_pos,
-    Field<scalar> limiterRho_neg,
-    Field<vector> limiterRhoU_pos,
-    Field<vector> limiterRhoU_neg,
-    Field<scalar> limiterRhoE_pos,
-    Field<scalar> limiterRhoE_neg,
+    Field<scalar>& rhoLimiter,
+    Field<vector>& rhoULimiter,
+    Field<scalar>& rhoELimiter,
     const fvMesh& mesh
 )
 {
@@ -95,26 +92,16 @@ void getMatTSp
 		Info << l << endl;
 		cin.get();
 	    }*/
-/*	    t2List_pos.push_back(Triplet(fi*5+0, P[sf]*5+0, r*limiterRho_pos[fi]));
-	    t2List_pos.push_back(Triplet(fi*5+0, N[sf]*5+0, l*limiterRho_pos[fi]));
-	    t2List_pos.push_back(Triplet(fi*5+1, P[sf]*5+1, r*limiterRhoU_pos[fi].x()));
-	    t2List_pos.push_back(Triplet(fi*5+1, N[sf]*5+1, l*limiterRhoU_pos[fi].x()));
-	    t2List_pos.push_back(Triplet(fi*5+2, P[sf]*5+2, r*limiterRhoU_pos[fi].y()));
-	    t2List_pos.push_back(Triplet(fi*5+2, N[sf]*5+2, l*limiterRhoU_pos[fi].y()));
-	    t2List_pos.push_back(Triplet(fi*5+3, P[sf]*5+3, r*limiterRhoU_pos[fi].z()));
-	    t2List_pos.push_back(Triplet(fi*5+3, N[sf]*5+3, l*limiterRhoU_pos[fi].z()));
-	    t2List_pos.push_back(Triplet(fi*5+4, P[sf]*5+4, r*limiterRhoE_pos[fi]));
-	    t2List_pos.push_back(Triplet(fi*5+4, N[sf]*5+4, l*limiterRhoE_pos[fi]));*/
-	    t2List_pos.push_back(Triplet(fi*5+0, P[sf]*5+0, r));
-	    t2List_pos.push_back(Triplet(fi*5+0, N[sf]*5+0, l));
-	    t2List_pos.push_back(Triplet(fi*5+1, P[sf]*5+1, r));
-	    t2List_pos.push_back(Triplet(fi*5+1, N[sf]*5+1, l));
-	    t2List_pos.push_back(Triplet(fi*5+2, P[sf]*5+2, r));
-	    t2List_pos.push_back(Triplet(fi*5+2, N[sf]*5+2, l));
-	    t2List_pos.push_back(Triplet(fi*5+3, P[sf]*5+3, r));
-	    t2List_pos.push_back(Triplet(fi*5+3, N[sf]*5+3, l));
-	    t2List_pos.push_back(Triplet(fi*5+4, P[sf]*5+4, r));
-	    t2List_pos.push_back(Triplet(fi*5+4, N[sf]*5+4, l));
+	    t2List_pos.push_back(Triplet(fi*5+0, P[sf]*5+0, r*rhoLimiter[P[fi]]));
+	    t2List_pos.push_back(Triplet(fi*5+0, N[sf]*5+0, l*rhoLimiter[P[fi]]));
+	    t2List_pos.push_back(Triplet(fi*5+1, P[sf]*5+1, r*rhoULimiter[P[fi]].x()));
+	    t2List_pos.push_back(Triplet(fi*5+1, N[sf]*5+1, l*rhoULimiter[P[fi]].x()));
+	    t2List_pos.push_back(Triplet(fi*5+2, P[sf]*5+2, r*rhoULimiter[P[fi]].y()));
+	    t2List_pos.push_back(Triplet(fi*5+2, N[sf]*5+2, l*rhoULimiter[P[fi]].y()));
+	    t2List_pos.push_back(Triplet(fi*5+3, P[sf]*5+3, r*rhoULimiter[P[fi]].z()));
+	    t2List_pos.push_back(Triplet(fi*5+3, N[sf]*5+3, l*rhoULimiter[P[fi]].z()));
+	    t2List_pos.push_back(Triplet(fi*5+4, P[sf]*5+4, r*rhoELimiter[P[fi]]));
+	    t2List_pos.push_back(Triplet(fi*5+4, N[sf]*5+4, l*rhoELimiter[P[fi]]));
 /*	    for (unsigned int q = 0; q < 5; q++) { 
 		t2List_pos.push_back(Triplet(fi*5+q, P[sf]*5+q, r));
 		t2List_pos.push_back(Triplet(fi*5+q, N[sf]*5+q, l));
@@ -138,26 +125,16 @@ void getMatTSp
 	    scalar r = (dn&ri)/mesh.V()[N[fi]];
 	    scalar l = (dn&li)/mesh.V()[N[fi]];
 	    
-/*	    t2List_neg.push_back(Triplet(fi*5+0, P[sf]*5+0, r*limiterRho_neg[fi]));
-	    t2List_neg.push_back(Triplet(fi*5+0, N[sf]*5+0, l*limiterRho_neg[fi]));
-	    t2List_neg.push_back(Triplet(fi*5+1, P[sf]*5+1, r*limiterRhoU_neg[fi].x()));
-	    t2List_neg.push_back(Triplet(fi*5+1, N[sf]*5+1, l*limiterRhoU_neg[fi].x()));
-	    t2List_neg.push_back(Triplet(fi*5+2, P[sf]*5+2, r*limiterRhoU_neg[fi].y()));
-	    t2List_neg.push_back(Triplet(fi*5+2, N[sf]*5+2, l*limiterRhoU_neg[fi].y()));
-	    t2List_neg.push_back(Triplet(fi*5+3, P[sf]*5+3, r*limiterRhoU_neg[fi].z()));
-	    t2List_neg.push_back(Triplet(fi*5+3, N[sf]*5+3, l*limiterRhoU_neg[fi].z()));
-	    t2List_neg.push_back(Triplet(fi*5+4, P[sf]*5+4, r*limiterRhoE_neg[fi]));
-	    t2List_neg.push_back(Triplet(fi*5+4, N[sf]*5+4, l*limiterRhoE_neg[fi]));*/
-	    t2List_neg.push_back(Triplet(fi*5+0, P[sf]*5+0, r));
-	    t2List_neg.push_back(Triplet(fi*5+0, N[sf]*5+0, l));
-	    t2List_neg.push_back(Triplet(fi*5+1, P[sf]*5+1, r));
-	    t2List_neg.push_back(Triplet(fi*5+1, N[sf]*5+1, l));
-	    t2List_neg.push_back(Triplet(fi*5+2, P[sf]*5+2, r));
-	    t2List_neg.push_back(Triplet(fi*5+2, N[sf]*5+2, l));
-	    t2List_neg.push_back(Triplet(fi*5+3, P[sf]*5+3, r));
-	    t2List_neg.push_back(Triplet(fi*5+3, N[sf]*5+3, l));
-	    t2List_neg.push_back(Triplet(fi*5+4, P[sf]*5+4, r));
-	    t2List_neg.push_back(Triplet(fi*5+4, N[sf]*5+4, l));
+	    t2List_neg.push_back(Triplet(fi*5+0, P[sf]*5+0, r*rhoLimiter[N[fi]]));
+	    t2List_neg.push_back(Triplet(fi*5+0, N[sf]*5+0, l*rhoLimiter[N[fi]]));
+	    t2List_neg.push_back(Triplet(fi*5+1, P[sf]*5+1, r*rhoULimiter[N[fi]].x()));
+	    t2List_neg.push_back(Triplet(fi*5+1, N[sf]*5+1, l*rhoULimiter[N[fi]].x()));
+	    t2List_neg.push_back(Triplet(fi*5+2, P[sf]*5+2, r*rhoULimiter[N[fi]].y()));
+	    t2List_neg.push_back(Triplet(fi*5+2, N[sf]*5+2, l*rhoULimiter[N[fi]].y()));
+	    t2List_neg.push_back(Triplet(fi*5+3, P[sf]*5+3, r*rhoULimiter[N[fi]].z()));
+	    t2List_neg.push_back(Triplet(fi*5+3, N[sf]*5+3, l*rhoULimiter[N[fi]].z()));
+	    t2List_neg.push_back(Triplet(fi*5+4, P[sf]*5+4, r*rhoELimiter[N[fi]]));
+	    t2List_neg.push_back(Triplet(fi*5+4, N[sf]*5+4, l*rhoELimiter[N[fi]]));
 /*	    for (unsigned int q = 0; q < 5; q++) { 
 		t2List_neg.push_back(Triplet(fi*5+q, P[sf]*5+q, r));
 		t2List_neg.push_back(Triplet(fi*5+q, N[sf]*5+q, l));
@@ -186,31 +163,19 @@ void getMatTSp
 		vector d = cfi[sf] - ci[faceCells[fi]];
 		vector ri = psf[fi];
 		scalar r = (d&ri)/mesh.V()[faceCells[fi]];
-	    /*    if (mesh.owner()[sf] == faceCells[fi]) {
-		    t3List_pos.push_back(Triplet(sf*5+0, nBdIndex*5+0, r*limiterRho_pos[sf]));
-		    t3List_pos.push_back(Triplet(sf*5+1, nBdIndex*5+1, r*limiterRhoU_pos[sf].x()));
-		    t3List_pos.push_back(Triplet(sf*5+2, nBdIndex*5+2, r*limiterRhoU_pos[sf].y()));
-		    t3List_pos.push_back(Triplet(sf*5+3, nBdIndex*5+3, r*limiterRhoU_pos[sf].z()));
-		    t3List_pos.push_back(Triplet(sf*5+4, nBdIndex*5+4, r*limiterRhoE_pos[sf]));
-		} else {
-		    t3List_neg.push_back(Triplet(sf*5+0, nBdIndex*5+0, r*limiterRho_neg[sf]));
-		    t3List_neg.push_back(Triplet(sf*5+1, nBdIndex*5+1, r*limiterRhoU_neg[sf].x()));
-		    t3List_neg.push_back(Triplet(sf*5+2, nBdIndex*5+2, r*limiterRhoU_neg[sf].y()));
-		    t3List_neg.push_back(Triplet(sf*5+3, nBdIndex*5+3, r*limiterRhoU_neg[sf].z()));
-		    t3List_neg.push_back(Triplet(sf*5+4, nBdIndex*5+4, r*limiterRhoE_neg[sf]));
-		}*/
+
 		if (mesh.owner()[sf] == faceCells[fi]) {
-		    t3List_pos.push_back(Triplet(sf*5+0, nBdIndex*5+0, r));
-		    t3List_pos.push_back(Triplet(sf*5+1, nBdIndex*5+1, r));
-		    t3List_pos.push_back(Triplet(sf*5+2, nBdIndex*5+2, r));
-		    t3List_pos.push_back(Triplet(sf*5+3, nBdIndex*5+3, r));
-		    t3List_pos.push_back(Triplet(sf*5+4, nBdIndex*5+4, r));
+		    t3List_pos.push_back(Triplet(sf*5+0, nBdIndex*5+0, r*rhoLimiter[faceCells[fi]]));
+		    t3List_pos.push_back(Triplet(sf*5+1, nBdIndex*5+1, r*rhoULimiter[faceCells[fi]].x()));
+		    t3List_pos.push_back(Triplet(sf*5+2, nBdIndex*5+2, r*rhoULimiter[faceCells[fi]].y()));
+		    t3List_pos.push_back(Triplet(sf*5+3, nBdIndex*5+3, r*rhoULimiter[faceCells[fi]].z()));
+		    t3List_pos.push_back(Triplet(sf*5+4, nBdIndex*5+4, r*rhoELimiter[faceCells[fi]]));
 		} else {
-		    t3List_neg.push_back(Triplet(sf*5+0, nBdIndex*5+0, r));
-		    t3List_neg.push_back(Triplet(sf*5+1, nBdIndex*5+1, r));
-		    t3List_neg.push_back(Triplet(sf*5+2, nBdIndex*5+2, r));
-		    t3List_neg.push_back(Triplet(sf*5+3, nBdIndex*5+3, r));
-		    t3List_neg.push_back(Triplet(sf*5+4, nBdIndex*5+4, r));
+		    t3List_neg.push_back(Triplet(sf*5+0, nBdIndex*5+0, r*rhoLimiter[faceCells[fi]]));
+		    t3List_neg.push_back(Triplet(sf*5+1, nBdIndex*5+1, r*rhoULimiter[faceCells[fi]].x()));
+		    t3List_neg.push_back(Triplet(sf*5+2, nBdIndex*5+2, r*rhoULimiter[faceCells[fi]].y()));
+		    t3List_neg.push_back(Triplet(sf*5+3, nBdIndex*5+3, r*rhoULimiter[faceCells[fi]].z()));
+		    t3List_neg.push_back(Triplet(sf*5+4, nBdIndex*5+4, r*rhoELimiter[faceCells[fi]]));
 		}
 	    }
 	    nBdIndex++;
@@ -1170,39 +1135,6 @@ void getMatQsSp
 }*/
 }
 
-void getMatTSp
-(
-    SpMat& matLimiter_pos,
-    SpMat& matLimiter_neg,
-    Field<scalar>& limiterRho_pos,
-    Field<scalar>& limiterRho_neg,
-    Field<vector>& limiterRhoU_pos,
-    Field<vector>& limiterRhoU_neg,
-    Field<scalar>& limiterRhoE_pos,
-    Field<scalar>& limiterRhoE_neg
-)
-{
-    TripletList listLmt_pos, listLmt_neg;
-    listLmt_pos.reserve(limiterRho_pos.size()*5);
-    listLmt_neg.reserve(limiterRho_pos.size()*5);
-    
-    for(int i = 0; i < limiterRho_pos.size(); ++i) {
-	listLmt_pos.push_back(Triplet(i*5+0, 0, limiterRho_pos[i]));
-	listLmt_pos.push_back(Triplet(i*5+1, 0, limiterRhoU_pos[i].x()));
-	listLmt_pos.push_back(Triplet(i*5+2, 0, limiterRhoU_pos[i].y()));
-	listLmt_pos.push_back(Triplet(i*5+3, 0, limiterRhoU_pos[i].z()));
-	listLmt_pos.push_back(Triplet(i*5+4, 0, limiterRhoE_pos[i]));
-	
-	listLmt_neg.push_back(Triplet(i*5+0, 0, limiterRho_neg[i]));
-	listLmt_neg.push_back(Triplet(i*5+1, 0, limiterRhoU_neg[i].x()));
-	listLmt_neg.push_back(Triplet(i*5+2, 0, limiterRhoU_neg[i].y()));
-	listLmt_neg.push_back(Triplet(i*5+3, 0, limiterRhoU_neg[i].z()));
-	listLmt_neg.push_back(Triplet(i*5+4, 0, limiterRhoE_neg[i]));
-    }
-
-    matLimiter_pos.setFromTriplets(listLmt_pos.begin(), listLmt_pos.end());
-    matLimiter_neg.setFromTriplets(listLmt_neg.begin(), listLmt_neg.end());
-}
 
 ////////////////////////new Order///////////////////////////////
 void newOrdering

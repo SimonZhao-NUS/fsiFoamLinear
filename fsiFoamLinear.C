@@ -116,38 +116,48 @@ int main(int argc, char *argv[])
 	    "gamma",
             fvc::interpolate(thermo.gamma(), "reconstruct(gamma)")
         );
+	
+	scalar K_lmt = 20;
+        const volVectorField rhoGrad = fvc::grad(rho, "Gauss linear");
+	szhaoFoam::vkSlopeLimiter<scalar> rhoLimiter(rho, rhoGrad, K_lmt);
+
         surfaceScalarField rho_pos
         (
 	    "rho_pos",
-            myInterpolatePos(rho)
+            myInterpolatePos(rho, rhoGrad, rhoLimiter)
         );
 
         surfaceScalarField rho_neg
         (
 	    "rho_neg",
-            myInterpolateNeg(rho)
+            myInterpolateNeg(rho, rhoGrad, rhoLimiter)
         );
      
+        const volTensorField rhoUGrad = fvc::grad(rhoU, "Gauss linear");
+	szhaoFoam::vkSlopeLimiter<vector> rhoULimiter(rhoU, rhoUGrad, K_lmt);
+
         surfaceVectorField rhoU_pos
         (
 	    "rhoU_pos",
-            myInterpolatePos(rhoU)
+            myInterpolatePos(rhoU, rhoUGrad, rhoULimiter)
         );
         surfaceVectorField rhoU_neg
         (
 	    "rhoU_neg",
-            myInterpolateNeg(rhoU)
+            myInterpolateNeg(rhoU, rhoUGrad, rhoULimiter)
         );
 
+        const volVectorField rhoEGrad = fvc::grad(rhoE, "Gauss linear");
+	szhaoFoam::vkSlopeLimiter<scalar> rhoELimiter(rhoE, rhoEGrad, K_lmt);
         surfaceScalarField rhoE_pos
         (
 	    "rhoE_pos",
-            myInterpolatePos(rhoE)
+            myInterpolatePos(rhoE, rhoEGrad, rhoELimiter)
         );
         surfaceScalarField rhoE_neg
         (
 	    "rhoE_neg",
-            myInterpolateNeg(rhoE)
+            myInterpolateNeg(rhoE, rhoEGrad, rhoELimiter)
         );
 
 /*	myMat matQ;

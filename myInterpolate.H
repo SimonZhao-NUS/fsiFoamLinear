@@ -493,10 +493,11 @@ myInterpolateNeg
 
 template<class Type>
 tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
-myInterpolatePosLinear
+myInterpolatePos
 (
     const GeometricField<Type, fvPatchField, volMesh>& vf,
-    Field<Type>& limiter
+    const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad,
+    szhaoFoam::vkSlopeLimiter<Type> limiter
 )
 {
     const Field<Type>& vfi = vf.internalField();
@@ -519,36 +520,20 @@ myInterpolatePosLinear
         )
     );
     GeometricField<Type, fvsPatchField, surfaceMesh>& sf = tsf.ref();
-
     Field<Type>& sfi = sf.internalField();
 
     const surfaceVectorField &faceCenter = mesh.Cf();
     const volVectorField &cellCenter = mesh.C();
-//    const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad = fvc::grad(vf, "Gauss linear");
-    const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad(myGaussGrad(vf));
+    
     const Field<typename outerProduct<vector, Type>::type> &fgradi = fgrad.internalField();
-    limiter = myLimiter(fgradi, vf);
+    
     for (register label fi=0; fi<P.size(); fi++)
     {
 	vector drt = faceCenter[fi] - cellCenter[P[fi]];
-        sfi[fi] = vfi[P[fi]] + eleWiseProd(limiter[P[fi]], (fgradi[P[fi]]&drt));
-//        sfi[fi] = vfi[P[fi]] + (fgradi[P[fi]]&drt);
-//        sfi[fi] = vfi[P[fi]];
-
-/*	if (fi == 300) {
-	    Info << P[fi] << endl;
-	    Info << limiter[P[fi]] << endl;
-	    Info << fgradi[P[fi]] << endl; 
-	    Info << drt << endl;
-	    Info << (fgradi[P[fi]]&drt) << endl;
-	    Info << (drt&fgradi[P[fi]]) << endl;
-	    Info << vfi[P[fi]] << endl;
-	    Info << sfi[fi] << endl;
-	    cin.get();
-	}*/
+//        sfi[fi] = vfi[P[fi]] + (drt&fgradi[P[fi]]); //2nd order reconstruction w/o limiter
+        sfi[fi] = vfi[P[fi]] + eleWiseProd(limiter[P[fi]], drt&fgradi[P[fi]]); //2nd order reconstruction w limiter
+//        sfi[fi] = vfi[P[fi]]; //1st order approx
     }
-
-    // Interpolate across coupled patches using given lambdas
 
     forAll(vf.boundaryField(), pi)
     {
@@ -560,10 +545,11 @@ myInterpolatePosLinear
 
 template<class Type>
 tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
-myInterpolateNegLinear
+myInterpolateNeg
 (
     const GeometricField<Type, fvPatchField, volMesh>& vf,
-    Field<Type>& limiter
+    const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad,
+    szhaoFoam::vkSlopeLimiter<Type> limiter
 )
 {
     const Field<Type>& vfi = vf.internalField();
@@ -586,24 +572,19 @@ myInterpolateNegLinear
         )
     );
     GeometricField<Type, fvsPatchField, surfaceMesh>& sf = tsf.ref();
-
     Field<Type>& sfi = sf.internalField();
 
     const surfaceVectorField &faceCenter = mesh.Cf();
     const volVectorField &cellCenter = mesh.C();
-//    const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad = fvc::grad(vf, "Gauss linear");
-    const GeometricField <typename outerProduct<vector, Type>::type, fvPatchField, volMesh> fgrad(myGaussGrad(vf));
+    
     const Field<typename outerProduct<vector, Type>::type> &fgradi = fgrad.internalField();
-    limiter = myLimiter(fgradi, vf);
     for (register label fi=0; fi<N.size(); fi++)
     {
 	vector drt = faceCenter[fi] - cellCenter[N[fi]];
-        sfi[fi] = vfi[N[fi]] + eleWiseProd(limiter[N[fi]], (fgradi[N[fi]]&drt));
-//        sfi[fi] = vfi[N[fi]] + (fgradi[N[fi]]&drt);
+//        sfi[fi] = vfi[N[fi]] + (drt&fgradi[N[fi]]);
+        sfi[fi] = vfi[N[fi]] + eleWiseProd(limiter[N[fi]], drt&fgradi[N[fi]]); //2nd order reconstruction w limiter
 //        sfi[fi] = vfi[N[fi]];
     }
-
-    // Interpolate across coupled patches using given lambdas
 
     forAll(vf.boundaryField(), pi)
     {

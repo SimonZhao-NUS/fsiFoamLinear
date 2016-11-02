@@ -1,33 +1,4 @@
 ///////////linearization ///////////
-//
-//////////////////
-Field<scalar> limiterRho_pos;
-Field<scalar> limiterRho_neg;
-myInterpolatePosLinear(rho, limiterRho_pos);
-myInterpolateNegLinear(rho, limiterRho_neg);
-Field<vector> limiterRhoU_pos;
-Field<vector> limiterRhoU_neg;
-myInterpolatePosLinear(rhoU, limiterRhoU_pos);
-//myInterpolatePosLinear(rhoU.component(0)(), limiterRho_pos);
-myInterpolateNegLinear(rhoU, limiterRhoU_neg);
-Field<scalar> limiterRhoE_pos;
-Field<scalar> limiterRhoE_neg;
-myInterpolatePosLinear(rhoE, limiterRhoE_pos);
-myInterpolateNegLinear(rhoE, limiterRhoE_neg);
-
-/*Info << limiterRho_pos << endl;
-cin.get();
-Info << limiterRho_neg << endl;
-cin.get();
-Info << limiterRhoU_pos << endl;
-cin.get();
-Info << limiterRhoU_neg << endl;
-cin.get();
-Info << limiterRhoE_pos << endl;
-cin.get();
-Info << limiterRhoE_neg << endl;
-cin.get();*/
-//////////////////
 
 unsigned int nIntCells = mesh.nCells();
 unsigned int nIntFaces = mesh.owner().size();
@@ -56,12 +27,9 @@ getMatTSp
     matT2_neg,
     matT3_pos,
     matT3_neg,
-    limiterRho_pos,
-    limiterRho_neg,
-    limiterRhoU_pos,
-    limiterRhoU_neg,
-    limiterRhoE_pos,
-    limiterRhoE_neg,
+    rhoLimiter,
+    rhoULimiter,
+    rhoELimiter,
     mesh
 );
 
@@ -340,20 +308,6 @@ getMatQsSp
     rhoU_neg,
     rhoE_pos,
     rhoE_neg
-);
-
-SpMat matLimiter_pos(nqIntCells, 1);
-SpMat matLimiter_neg(nqIntCells, 1);
-getMatTSp
-(
-    matLimiter_pos,
-    matLimiter_neg,
-    limiterRho_pos,
-    limiterRho_neg,
-    limiterRhoU_pos,
-    limiterRhoU_neg,
-    limiterRhoE_pos,
-    limiterRhoE_neg
 );
 
 Info << "Writing matrices, wait..." << endl;
