@@ -55,8 +55,9 @@ scalar molWeight = readScalar(dict.subDict("mixture").subDict("specie").lookup("
 scalar Rspec = constant::physicoChemical::R.value()*1000/molWeight; //(J/(kg*K))
 scalar gamma = Cp/(Cp - Rspec);
 
+
 //this should be farfield or freestream quantities
-forAll(mesh.boundary(), patchi) {
+/*forAll(mesh.boundary(), patchi) {
     if (mesh.boundary()[patchi].name() == "inlet") {
 	U_freestream_dim = mag(U_dim.boundaryField()[patchi][0]);
 	p_freestream_dim = p_dim.boundaryField()[patchi][0];
@@ -64,7 +65,14 @@ forAll(mesh.boundary(), patchi) {
 	rho_freestream_dim = p_freestream_dim/Rspec/T_freestream_dim;
 	cSqr_freestream_dim = gamma*Rspec*T_freestream_dim;
     }
-}
+}*/
+#include "readFarFieldValue.H"
+U_freestream_dim = mag(U_inf);
+p_freestream_dim = p_inf;
+T_freestream_dim = T_inf;
+rho_freestream_dim = p_freestream_dim/Rspec/T_freestream_dim;
+cSqr_freestream_dim = gamma*Rspec*T_freestream_dim;
+
 volVectorField U
 (
     IOobject

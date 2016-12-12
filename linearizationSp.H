@@ -33,6 +33,22 @@ getMatTSp
     mesh
 );
 
+SpMat matL_pos(nqIntFaces, nqIntCells);
+SpMat matL_neg(nqIntFaces, nqIntCells);
+SpMat matLB_pos(nqIntFaces, nqBdFaces);
+SpMat matLB_neg(nqIntFaces, nqBdFaces);
+getMatLSp
+(
+    matL_pos,
+    matL_neg,
+    matLB_pos,
+    matLB_neg,
+    rhoLimiter,
+    rhoULimiter,
+    rhoELimiter,
+    mesh
+);
+
 SpMat matA_pos(nqIntFaces, nqIntFaces);
 SpMat matA_neg(nqIntFaces, nqIntFaces);
 SpMat matA_abs(nqIntFaces, nqIntFaces);
@@ -47,7 +63,7 @@ getMatASp
     H_neg,
     U_tilt,
     H_tilt,
-    gamma,
+    gammaSurface,
     mesh
 );
 
@@ -59,7 +75,7 @@ getMatCSp
     U,
     T,
     p,
-    thermo.gamma()(),
+    gamma,
     nBdFaces,
     mesh
 );
@@ -71,7 +87,7 @@ getMatDSp
     U,
     T,
     p,
-    thermo.gamma()(),
+    gamma,
     nIntCells
 );
 
@@ -80,8 +96,9 @@ getMatBSp
 (
     matB,
     U,
-    H,
-    thermo.gamma()(),
+//    H,
+    h+.5*magSqr(U),
+    gamma,
     nBdFaces,
     mesh
 );
@@ -118,38 +135,40 @@ getMatFSp
     rho,
     U,
     p,
-    c,
+    sqrt(gamma*p/rho),
     nBdFaces,
     mesh
 );
 
+#include "readFarFieldValue.H"
 double U_freestream = 0;
 double c_freestream = 0;
 double rho_freestream = 0;
 double p_freestream = 0;
-forAll(mesh.boundary(), patchi) {
-    if (mesh.boundary()[patchi].name() == "inlet") {
-	U_freestream = mag(U.boundaryField()[patchi][0]);
-	c_freestream = sqrt(thermo.Cp()/thermo.Cv()*rPsi)().boundaryField()[patchi][0];
-	rho_freestream = rho.boundaryField()[patchi][0];
-	p_freestream = p.boundaryField()[patchi][0];
-    }
-}
+double Mach_freestream = 0;
+
+U_freestream = mag(U_inf);
+rho_freestream = rho_inf;
+p_freestream = p_inf;
+c_freestream = std::sqrt(gamma[0]*p_inf/rho_inf);
+Mach_freestream = U_freestream/c_freestream;
+
 Info <<"Free stream veloctiy magnitude:" << U_freestream << endl;
 Info <<"Free stream density:" << rho_freestream << endl;
 Info <<"Free stream pressure:" << p_freestream << endl;
 Info <<"Free stream speed of sound:" << c_freestream << endl;
+Info <<"Free stream Mach:" << Mach_freestream << endl;
 myMat matFreestream, matFreestream_dim;
 matFreestream.push_back(std::vector<double>(1, U_freestream));
 matFreestream.push_back(std::vector<double>(1, c_freestream));
 matFreestream.push_back(std::vector<double>(1, rho_freestream));
 matFreestream.push_back(std::vector<double>(1, p_freestream));
-
+/*
 matFreestream_dim.push_back(std::vector<double>(1, cSqr_freestream_dim));
 matFreestream_dim.push_back(std::vector<double>(1, rho_freestream_dim));
 matFreestream_dim.push_back(std::vector<double>(1, p_freestream_dim));
 matFreestream_dim.push_back(std::vector<double>(1, U_freestream_dim));
-matFreestream_dim.push_back(std::vector<double>(1, T_freestream_dim));
+matFreestream_dim.push_back(std::vector<double>(1, T_freestream_dim));*/
 
 SpMat matH(nqBdFaces, 1);
 getMatHSp
@@ -177,7 +196,7 @@ forAll(mesh.boundary(), patchi) {
 }
 
 SpMat matKp(nWallSf, nqIntCells);
-getMatKSp
+getMatKpSp
 (
     matKp,
     mesh
@@ -350,11 +369,11 @@ SpMat matCinv(nqBdFaces, nqBdFaces);
 getMatCinvSp
 (
     matCinv,
-    thermo.rho()(),
+    rho,
     U,
     T,
     p,
-    thermo.gamma()(),
+    gamma,
     nqBdFaces/5,
     mesh
 );
@@ -381,16 +400,32 @@ matWall.setFromTriplets(wallList.begin(), wallList.end());
 myMatWriteDenSp(matWall, "matWall");
 Info << nWall << endl;
 ////
+TripletList xWallList, pWallList;
+int nW = 0;
+forAll(mesh.boundary(), patchi) {
+    const labelUList &faceCells = mesh.boundary()[patchi].faceCells();
+    const vectorField &cp = mesh.Cf().boundaryField()[patchi];
+    forAll(mesh.boundary()[patchi], facei) {
+	if (mesh.boundary()[patchi].name() == "wing") {
+	    xWallList.push_back(Triplet(nW, 0, cp[facei].x()));
+	    pWallList.push_back(Triplet(nW, 0, p.internalField()[faceCells[facei]]));
+	    ++nW;
+	}
+    }
+}
+SpMat matxWall(nW,1);
+SpMat matpWall(nW,1);
+matxWall.setFromTriplets(xWallList.begin(), xWallList.end());
+matpWall.setFromTriplets(pWallList.begin(), pWallList.end());
+myMatWriteDenSp(matxWall, "matxWall");
+myMatWriteDenSp(matpWall, "matpWall");
+////2nd Jacobian
+//SpMat matAeq = -((matDiv*0.5*(matA_pos*(matT_pos+matSP2_pos)+matA_neg*(matT_neg+matSP2_neg)-matA_abs*((matT_neg+matSP2_neg)-(matT_pos+matSP2_pos)))) + (matDivBd*matB*(matCinv*matF*matD)));
 
-//SpMat matAeq = -((matDiv*0.5*(matA_pos*(matT_pos+matSP2_pos)+matA_neg*(matT_neg+matSP2_neg)-matA_abs*((matT_neg+matSP2_neg)-(matT_pos+matSP2_pos)))) + (matDivBd*matB*(matCinv*matF*matD)) );
-
-//SpMat matBeq = - (matDiv*0.5*(matA_pos*(matT_pos+matT2_pos)+matA_neg*(matT_neg+matT2_neg)-matA_abs*((matT_neg+matT2_neg)-(matT_pos+matT2_pos)))*matQcSp + matDiv* 0.5*(matA_pos*(matT3_pos)+matA_neg*(matT3_neg)-matA_abs*((matT3_neg)-(matT3_pos)))*(matF*matQcSp + matE)  + matDivBd*matB*(matF*matQcSp + matE));
-
-//SpMat matAeq = -((matDiv*0.5*(matA_pos*(matT_pos)+matA_neg*(matT_neg)-matA_abs*((matT_neg)-(matT_pos)))) + (matDivBd*matB*(matCinv*matF*matD)) );
 SpMat matAeq = -((matDiv*0.5*(matA_pos*(matT_pos+matSP2_pos)+matA_neg*(matT_neg+matSP2_neg)-matA_abs*((matT_neg+matSP2_neg)-(matT_pos+matSP2_pos)))) + (matDivBd*matB*(matCinv*matF*matD)));
 
-SpMat matAeq_inner = -((matDiv*0.5*(matA_pos*(matT_pos)+matA_neg*(matT_neg)-matA_abs*((matT_neg)-(matT_pos)))));
-SpMat matAeq_bd = -((matDivBd*matB*(matCinv*matF*matD)) );
+SpMat matAeq_inner = -(matDiv*0.5*(matA_pos*(matT_pos+matSP2_pos)+matA_neg*(matT_neg+matSP2_neg)-matA_abs*((matT_neg+matSP2_neg)-(matT_pos+matSP2_pos))));
+SpMat matAeq_bd = -(matDivBd*matB*(matCinv*matF*matD));
 
 SpMat matBeq =  -matDivBd*matBf;
 SpMat matBeq_dyn1 =  -matDiv*matBdyn1;
@@ -425,11 +460,17 @@ myMatWriteDenSp(matT2_pos, "matT2_pos");
 myMatWriteDenSp(matT2_neg, "matT2_neg");
 myMatWriteDenSp(matT3_pos, "matT3_pos");
 myMatWriteDenSp(matT3_neg, "matT3_neg");
+myMatWriteDenSp(matL_pos, "matL_pos");
+myMatWriteDenSp(matL_neg, "matL_neg");
+myMatWriteDenSp(matLB_pos, "matLB_pos");
+myMatWriteDenSp(matLB_neg, "matLB_neg");
 myMatWriteDenSp(matSP2_pos, "matSP2_pos");
 myMatWriteDenSp(matSP2_neg, "matSP2_neg");
 myMatWriteDenSp(matCinv, "matCinv");
 myMatWriteDenSp(matF, "matF");
 myMatWriteDenSp(matD, "matD");
+myMatWriteDenSp(matDiv, "matDiv");
+myMatWriteDenSp(matDivBd, "matDivBd");
 SpMat matS(nqBdFaces,1);
 getMatSSp
 (
@@ -443,6 +484,6 @@ myMatWriteDenSp(matS, "matS");
 
 Info << "Done, martrices written" << endl;
 
-break;
+//break;
 ////////linearization end////////////////////	
 

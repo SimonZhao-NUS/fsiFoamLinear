@@ -3,7 +3,7 @@ IOdictionary dictIC
     IOobject
     (
 	"ICs",
-	mesh.time().timeName(),
+	"0", //mesh.time().timeName(),
 	mesh,
 	IOobject::MUST_READ,
 	IOobject::NO_WRITE

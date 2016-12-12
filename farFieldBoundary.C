@@ -2,17 +2,13 @@ void farFieldBoundaryCondition
 (
     volScalarField& rho,
     volVectorField& U,
-    volScalarField& p,
-    const volScalarField& c,
-    const vector U_inf,
-    const scalar rho_inf,
-    const scalar p_inf
+    volScalarField& p
 )
 {
-/*    scalar p_inf = 0.714184;
-    scalar rho_inf = 1;
-    vector U_inf(0.2,0,0);*/
+    const volScalarField& gamma = p.db().lookupObject<volScalarField>("mygamma");   
+    const volScalarField c(sqrt(gamma*p/rho));
     const fvMesh& mesh = p.mesh();
+    #include "readFarFieldValue.H"
 
     forAll(mesh.boundary(), patchi) {
 	//Us: + for outflow, - for inflow
@@ -68,6 +64,7 @@ void farFieldBoundaryCondition
 		}
 	    }
 	}
+	//make this boundary confirmed to OpenFOAM rules, note z direction
        	if (mesh.boundary()[patchi].name() == "wing") {
 	    forAll(mesh.boundary()[patchi], facei) {
 		vector nf = SfPatch[facei]/magSfPatch[facei];

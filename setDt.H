@@ -50,7 +50,8 @@ if (mesh.nInternalFaces())
 	contraVSumY[neighbour[fi]] += contraVY;
 	contraVSumZ[neighbour[fi]] += contraVZ;
     }
-    volScalarField c(sqrt(thermo.Cp()/thermo.Cv()*rPsi));
+//    volScalarField c(sqrt(thermo.Cp()/thermo.Cv()*rPsi));
+    volScalarField c(sqrt(gamma*rPsi));
     scalarField dTLoc
     (
 	cfl*mesh.V()/
